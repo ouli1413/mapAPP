@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>周边搜</title> 		
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />	
+    	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+   		<meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  	  	<link rel="stylesheet" type="text/css" href="css/around.css"/>
+  	  	<link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+  	  	<script type="text/javascript" src="js/jquery-1.10.2.js" ></script>
+    	<script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.1&key=801d453cfb71363a558bc398b3b45478"></script>
+    	<script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+		<script src="js/newMap.js"></script>
+		
+	</head>
+	<body>
+		<div id='container' style="display:none"></div>
+		<div id="tip" style="display:none"></div>		
+		<div class="wrap">
+			<div class="header"> 
+				<!--POI；（关键字）分类汽车服务|汽车销售|汽车维修|摩托车服务|餐饮服务|购物服务|生活服务|体育休闲服务|-->
+               <!--医疗保健服务|住宿服务|风景名胜|商务住宅|政府机构及社会团体|科教文化服务|-->
+              <!----交通设施服务|金融保险服务|公司企业|道路附属设施|地名地址信息|公共设施-->
+				<span id="location">定位中</span> 
+				<input  id="key" type="text" placeholder="请输入关键字" style="color: white;" />
+				<button id="searchBtn">搜索</button>
+			</div>
+			<div class="main">
+				<div class="figure">
+					<img src="img/meishi.png" >		
+					<div class="title">餐饮</div>
+				</div> 
+				<div class="figure">
+					<img src="img/huoguo.png">
+					<div class="title" >火锅</div>
+				</div>
+				<div class="figure">
+					<img src="img/jiudian.png">
+					<div class="title">住宿</div>
+				</div>
+				<div class="figure">
+					<img src="img/chaoshi.png">
+					<div class="title">购物</div>
+				</div>
+				<div class="figure">
+					<img src="img/jianfa.png">
+					<div class="title">生活服务</div>
+				</div>
+				<div class="figure">
+					<img src="img/yundongjianshen.png">
+					<div class="title">运动健身</div>
+				</div> 
+				<div class="figure">
+					<img src="img/KTV.png">
+					<div class="title">KTV</div>
+				</div>
+				<div class="figure">
+					<img src="img/remenshangquan.png">
+					<div class="title">风景名胜</div>
+				</div>
+				<div class="figure">
+					<img src="img/xiuxianyule.png">
+					<div class="title">休闲娱乐</div>
+				</div>
+				<div class="figure">
+					<img src="img/dianying.png">
+					<div class="title">电影</div>
+				</div>
+				<div class="figure">
+					<img src="img/sheying.png">
+					<div class="title">摄影</div>
+				</div>
+				<div class="figure">
+					<img src="img/zuliaoyangsheng.png">
+					<div class="title">医疗保健</div>
+				</div>
+			</div> 
+		</div>
+		<div id="panel"></div>
+		<div id="content"></div>
+		<img src="img/loading.gif" id="loading">
+	</body>
+	<script>
+		 //经纬度	     
+	    var lon=0;//全局
+	    var lat=0;
+	    var arr=[];
+		var currentTypeAllPage;
+		var currentTypePage=1;
+		var type="餐饮";//默认搜索为餐饮
+		var ifGetData = true;//标记苹果、安卓兼容
+		$("#loading").show();
+		//获取定位中标签
+		var _location=$("#location");
+		var searchBtn=$("#searchBtn");//搜索		
+//		console.log(_value);
+		//加载地图，调用浏览器定位服务
+		var map, geolocation;
+	    map = new AMap.Map('container', {
+	        resizeEnable: true 
+	    });
+	    var figure=$(".figure");//图片+内容div
+	    var title=$(".title");//内容
+	    adv();
+	    function adv(){	    	
+	    	//给div添加点击事件 
+	    	figure.click(figClick);	    	
+	    	$(document).scroll(_scroll);//侦听滚动条
+	    	getLocation(map,getLngLat);     	
+	    }
+	    //图片快捷点击事件 
+
+	    function figClick(){
+		    	var _value=title.html();
+		    	alert(_value);
+		    	location.href="searchShop.html?_value="+encodeURI(_value);	    	
+	    }
+	    //关键字搜索点击事件
+	    searchBtn.click(function(){
+	    	//encodeURI()防止中文转换乱码 、、、、、、、、、decodeURL()转回来
+			//跳到另一个页面     
+			var _value=$("#key").val();
+//			alert(_value);
+//			searchInfo(_value,map,arr,currentTypePage,getTypeList);
+			location.href="searchShop.html?_value="+encodeURI(_value);
+	    })
+	    //侦听滚动条事件 
+	    function _scroll(){
+	    	var _top=$(window).scrollTop();
+	    	var _clientHeight=$(window).height();
+	    	var _scrollHeight=$(document).height();
+	    	if(!ifGetData){
+	    		return;
+	    	}
+	    	if((_top+_clientHeight)>=_scrollHeight){
+	    		if(currentTypePage<currentTypeAllPage){
+	    			ifGetData = false;
+	    			currentTypePage++;
+	    			$("#loading").show();
+	    			searchInfo(type,map,arr,currentTypePage,getTypeList);
+	    			
+	    		}    		
+	    	}
+	    }	    
+	    //获取经纬度
+	    function getLngLat(data){ 
+	    	lon=data.position.getLng();
+	    	lat=data.position.getLat();
+	    	arr=[lon,lat];
+	    	//存储在本机中
+	    	localStorage.setItem("lonlat",JSON.stringify(arr));
+	    	//读取
+//	    	var _arr=JSON.parse(localStorage.getItem("lonlat"));
+	    	getAddrInfo(lon,lat,creatInfo);
+	    }  
+		//定位具体信息显示
+	    function creatInfo(_info){ 
+	    	//增加城市信息
+	    	var _city=_info.addressComponent.city==''?_info.addressComponent.province:_info.addressComponent;
+		    _location.html(_city);
+		    //周边搜索
+		    searchInfo(type,map,arr,currentTypePage,getTypeList);
+    	}	    
+	    //获取搜索关键字类型  data----result
+	    function getTypeList(data){
+	    	var count=data.poiList.count;//总共店家数
+	    	var pageSize=data.poiList.pageSize;
+	    	currentTypeAllPage=Math.ceil(count/pageSize);
+	    	var str="";
+	    	var _arr=data.poiList.pois;
+	    	for(var i=0;i<_arr.length;i++){
+	    		var _name=_arr[i].name;
+	    		var _location=_arr[i].location;	    		
+	    		var _address=_arr[i].address;
+	    		var _distance=_arr[i].distance;	    		
+	    		var _tel=getTureInfo(_arr[i].tel,"tel");
+	    		var _website=getTureInfo(_arr[i].website,"website");
+	    		var _photos=getTureInfo(_arr[i].photos,"photos");	   
+	    		//拼接字符串
+	    		var item="<div class='con' lng='"+_location.getLng()+"'lat='"+_location.getLat()+"'><div class='info'><p class='word name'>"+_name+"</p><p class='word'>"+"地址:"+_address+"</p><p class='word'>"+"距离："+_distance+"米</p><p class='word'>"+"电话：<a href='tel:"+_tel+"'>"+_tel+"</a></p></div><img src='"+_photos[0].url+"'/></div>";   
+	    		str+=item;
+	    	}
+	    	var allContent=$("#content").html();
+	    	var newContent=allContent+str;
+	   		ifGetData = true;
+	   		$("#loading").hide();
+	    	$("#content").html(newContent);
+	    	$("#content div").click(listClick);
+	    	
+	    }
+	    
+	    //点击标签事件
+	    function listClick(){
+	    	var _shopLng=$(this).attr("lng");
+	    	var _shopLat=$(this).attr("lat");
+	    	//跳转到商家地图
+	    	location.href="shopMap.html?lng="+_shopLng+"&lat="+_shopLat;
+	    }
+ 	    //获取正确的相关信息
+	    function getTureInfo(_info,_inType){
+	    	var returnData;
+	    	switch(_inType){
+	    		case "tel":
+	    			returnData=_info?_info:"无联系方式";
+	    			break;
+	    		case "website":
+	    			returnData=_info?_info:"www.baidu.com";
+	    			break;
+	    		case "photos":
+	    			returnData=_info?_info:[{url:"img/logo.png"}];
+	    			break;
+	    	}
+	    	return returnData;
+	    }	     
+//	    
+	    
+	    
+	    
+	    //给每个图片添加点击事件
+//	    var figure=$(".figure");
+//	    var title=$(".title");
+//	    figure.click(function(){		//点击事件
+//	    	if(title.html()=="美食"){
+//	    		var _value="美食";
+//	    		location.href="search.html?_value="+encodeURI(_value);
+//	    	}else if(title.html()=="火锅"){
+//	    		var _value="火锅";
+//	    		location.href="search.html?_value="+encodeURI(_value);
+//	    	}
+//	    })	
+	</script>
+</html>

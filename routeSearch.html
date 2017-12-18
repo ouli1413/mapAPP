@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>步行路线</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+     <link rel="stylesheet" type="text/css" href="css/around.css"/>
+    <style type="text/css">
+        #panel {
+            position: absolute;
+            background-color: white;
+            top: 76%;
+            left: 1px;
+            width: 100%;
+        }
+        
+    </style>
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.1&key=801d453cfb71363a558bc398b3b45478&plugin=AMap.Walking"></script>
+    <!--<script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>-->
+    <script type="text/javascript" src="js/newMap.js"></script>
+    <script src="js/jquery-1.10.2.js"></script>
+	</head>
+	<body>
+		<div id="btn">
+			<button id="bus">公交</button>
+			<button id="walk" style="background-color:#1771B8;">步行</button>
+			<button id="drive">驾车</button>
+			<button id="home">主页</button>
+		</div>	
+		<div id="container" style="height: 70%;top:6%;"></div>
+		<div id="panel"></div>
+		<img src="img/loading.gif" id="loading">
+	</body>
+	<script>
+		var _bus=$("#bus");
+		var _walk=$("#walk");
+		var _drive=$("#drive");
+		var _home=$("#home");
+		//读取本机商店坐标和本人坐标
+		var _shopArr=JSON.parse(localStorage.getItem("shoplnglat"));//商店经纬度
+		var _localArr=JSON.parse(localStorage.getItem("lonlat"));//定位
+//		alert(_shopArr);
+	    var map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: _localArr,//地图中心点
+        zoom: 13 //地图显示的缩放级别
+    });
+    $("#loading").show();
+     getLocation(map,getLonLat);
+    function getLonLat(data){
+    	 //步行导航
+    	var walking = new AMap.Walking({
+        map: map,
+	        panel: "panel"
+	    }); 
+	    //根据起终点坐标规划步行路线
+	    $("#loading").hide();
+	    walking.search(_localArr,_shopArr);
+ 	} 
+ 	
+ 	//公交
+ 	_bus.click(function(){
+ 		location.href="bus.html";
+ 	})
+ 	//驾车
+ 	_drive.click(function(){
+ 		location.href="drive.html";
+ 	})
+ 	//返回主页
+ 	_home.click(function(){
+ 		location.href="home.html";
+ 	})
+	$("#btn button").click(function(){
+ 		$("#btn button").css('background-color','#ccc');
+		$(this).css('background-color','#1771B8');
+	})
+	</script>
+</html>

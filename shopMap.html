@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+	    <title>商家地图</title>
+	    <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+	    <link rel="stylesheet" href="css/around.css" />
+	    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>  
+	    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=801d453cfb71363a558bc398b3b45478"></script>
+	    <script type="text/javascript" src="js/newMap.js"></script>
+		<script>
+		//得到的网址：location.href="busTransfer.html?addr="+_addrInfo
+			//获取_addrInfo；
+			var _url=location.href;//得到当前的网址，在进行拆分获取
+			var _lng=_url.split("?")[1].split("&")[0].split("=")[1];
+			var _lat=_url.split("?")[1].split("&")[1].split("=")[1];
+			var shopArr=[_lng,_lat];
+			//存储在本机中
+    		localStorage.setItem("shoplnglat",JSON.stringify(shopArr));    		
+//  		//读取
+////	    var _arr=JSON.parse(localStorage.getItem("lonlat"));
+		</script>	
+	</head>	
+<body>
+	<div id="container" style="height: 94%;top:6%;"></div>
+	<div id="btn">
+		<button id="ruteSearch">路线</button>
+	    <button id="routeHome">主页</button>
+	</div>	
+	<img src="img/loading.gif" id="loading">
+</body>
+<script type="text/javascript">
+	//商家具体地址信息显示
+	//地图初始化时，在地图上添加一个marker标记,鼠标点击marker可弹出自定义的信息窗体
+	var _arr=JSON.parse(localStorage.getItem("lonlat"));//本地经纬度
+	var map, geolocation;
+    map = new AMap.Map("container", {
+        resizeEnable: true,
+        center: [_lng,_lat],
+        zoom: 11
+    });
+    $("#loading").show();
+    addMarker(_lng,_lat);
+    //点标注方法     
+    function addMarker(_lng,_lat) {
+    	 var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
+          marker = new AMap.Marker({
+            icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+            position: [_lng,_lat],
+             map: map
+        });         
+		getLocation(map,geLocation); //显示详细信息
+    }  
+    //自动显示商店信息
+    function geLocation(data){ 
+    	arr=[_lng,_lat];
+    	getAddrInfo(_lng,_lat,creatInfo);
+     } 
+     function creatInfo(_info){
+     	var lnglat=new AMap.LngLat(_lng,_lat);
+       	var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
+     	infoWindow.setContent(_info.formattedAddress);
+     	$("#loading").hide();
+        infoWindow.open(map, lnglat); 
+     }
+//	
+
+//路线搜索点击事件
+	 var ruteSearchBtn=$("#ruteSearch");
+	 ruteSearchBtn.click(function(){
+	 	location.href="routeSearch.html";
+	 })
+	 $("#routeHome").click(function(){
+	 	location.href="home.html";
+	 })
+	 $("#btn button").click(function(){
+    	$("#btn button").css('background-color','#ccc');
+		$(this).css('background-color','#1771B8');
+	})
+	 
+	 
+	 
+	 
+   </script> 
+</html>

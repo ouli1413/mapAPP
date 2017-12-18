@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		 <meta charset="utf-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+	    <title>周边商店</title>
+	    <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+	    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+	    <link rel="stylesheet" href="css/around.css" />
+	    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=801d453cfb71363a558bc398b3b45478"></script> 
+	    <script type="text/javascript" src="js/newMap.js"></script>
+		<script>
+			//得到的网址：location.href="busTransfer.html?addr="+_addrInfo
+			//获取_addrInfo；
+			var _url=location.href;//得到当前的网址，在进行拆分获取
+			var _value=decodeURI(_url.split("?")[1].split("=")[1]);
+	</script>
+	</head>	
+	<style>   	
+        #container{
+        	display: none;
+        }
+       
+    </style>
+	<body> 
+		<img src="img/loading.gif" id="loading">
+		<div id='container'></div>
+		<div id='msg'>搜索到以下商家</div> 
+		<div id="content"></div>
+	</body>
+	<script>
+		var currentTypeAllPage;
+		var currentTypePage=1;
+		var ifGetData = true;//标记苹果、安卓兼容
+		$("#loading").show();
+		 //加载地图，调用浏览器定位服
+		var map, geolocation;
+	    map = new AMap.Map('container', {
+	        resizeEnable: true  
+	    });
+		var arr=JSON.parse(localStorage.getItem("lonlat"));		
+		 adv();
+	    function adv(){    	
+	    	$(document).scroll(_scroll);//侦听滚动条
+	    }
+	    //侦听滚动条事件 
+	    function _scroll(){
+	    	var _top=$(window).scrollTop();
+	    	var _clientHeight=$(window).height();
+	    	var _scrollHeight=$(document).height();
+	    	if(!ifGetData){
+	    		return;
+	    	}
+	    	if((_top+_clientHeight)>=_scrollHeight){
+	    		if(currentTypePage<currentTypeAllPage){
+	    			ifGetData = false;
+	    			currentTypePage++;
+    				$("#loading").show();
+	    			searchInfo(_value,map,arr,currentTypePage,getTypeList);	    			
+	    		}    		
+	    	}
+	    }
+	    searchInfo(_value,map,arr,currentTypePage,getTypeList);
+	    //获取搜索关键字类型  data----result
+	    function getTypeList(data){
+	    	if(data.info==undefined){
+	    		$("#msg").html('抱歉，没搜到您想要的内容，为您推荐附近商家')
+	    		searchInfo('餐饮',map,arr,currentTypePage,getTypeList);	 
+	    		return;	    	
+	    	}else{
+		    	var count=data.poiList.count;//总共店家数
+		    	var pageSize=data.poiList.pageSize;
+		    	currentTypeAllPage=Math.ceil(count/pageSize);
+		    	var _arr=data.poiList.pois;
+		    	var str="";
+		    	for(var i=0;i<_arr.length;i++){
+		    		var _name=_arr[i].name;
+		    		var _location=_arr[i].location;	    		
+		    		var _address=_arr[i].address;
+		    		var _distance=_arr[i].distance;	    		
+		    		var _tel=getTureInfo(_arr[i].tel,"tel");
+		    		var _website=getTureInfo(_arr[i].website,"website");
+		    		var _photos=getTureInfo(_arr[i].photos,"photos");	   
+		    		//拼接字符串
+	    		    var item="<div class='con' lng='"+_location.getLng()+"'lat='"+_location.getLat()+"'><div class='info'><p class='word name'>"+_name+"</p><p class='word'>"+"地址:"+_address+"</p><p class='word'>"+"距离："+_distance+"米</p><p class='word'>"+"电话：<a href='tel:"+_tel+"'>"+_tel+"</a></p></div><img src='"+_photos[0].url+"'/></div>";   
+		    		str+=item;
+		    	}
+		    	var allContent=$("#content").html();
+		    	var newContent=allContent+str;
+		   		ifGetData = true;
+	   			$("#loading").hide();
+		    	$("#content").html(newContent);
+		    	$("#content div").click(listClick);
+	    	}
+	    }
+	    
+	    //点击标签事件 
+	    function listClick(){
+	    	var _shopLng=$(this).attr("lng");
+	    	var _shopLat=$(this).attr("lat");
+	    	//跳转到商家地图
+	    	location.href="shopMap.html?lng="+_shopLng+"&lat="+_shopLat;
+	    }
+ 	    //获取正确的相关信息
+	    function getTureInfo(_info,_inType){
+	    	var returnData;
+	    	switch(_inType){
+	    		case "tel":
+	    			returnData=_info?_info:"无联系方式";
+	    			break;
+	    		case "website":
+	    			returnData=_info?_info:"www.baidu.com";
+	    			break;
+	    		case "photos":
+	    			returnData=_info?_info:[{url:"img/logo.png"}];
+	    			break;
+	    	} 
+	    	return returnData;
+	    }	 
+	</script>
+</html>
